@@ -7,7 +7,7 @@ from PIL import Image
 model = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True)
 
 # Görselinizi yükleyin
-img_path = "C:/Users/yunus/Desktop/goruntu_isleme/YOK/offside/Ekran görüntüsü 2024-10-24 024654.png"
+img_path = r"C:\Users\yunus\Desktop\goruntu_isleme\YOK\offside\Ekran görüntüsü 2024-10-24 101941.png"
 img = Image.open(img_path)
 results = model(img_path)
 
@@ -70,7 +70,20 @@ for i, (*box, conf, cls) in enumerate(detections):
         # "person" sınıfı olan tespitleri kaydet
         person_detections.append((x_min, y_min, x_max, y_max))
 
+# Çizgileri tespit etmek için Canny edge detection kullanın
+gray_img = cv2.cvtColor(img_cv, cv2.COLOR_BGR2GRAY)
+edges = cv2.Canny(gray_img, 50, 150, apertureSize=3)
+
+# Hough Line Transform ile çizgileri tespit et
+lines = cv2.HoughLinesP(edges, 1, np.pi / 180, threshold=100, minLineLength=100, maxLineGap=10)
+
+# Tespit edilen çizgileri görüntü üzerine çizin
+if lines is not None:
+    for line in lines:
+        x1, y1, x2, y2 = line[0]
+        cv2.line(img_cv, (x1, y1), (x2, y2), (0, 255, 0), 2)  # Çizgiyi yeşil renkte çiz
+
 # Sonucu göster
-cv2.imshow("Categorized Players", img_cv)
+cv2.imshow("Categorized Players and Lines", img_cv)
 cv2.waitKey(0)  # Herhangi bir tuşa basılana kadar bekle
 cv2.destroyAllWindows()
